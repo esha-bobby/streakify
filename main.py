@@ -1,34 +1,33 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-import models, schemas, crud
-from database import engine, get_db
-from datetime import date
 from sqlalchemy import func
+from datetime import date
+from database import engine, get_db
+import models
+import crud
+from routes import users_router, habits_router, logs_router
 
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Streakify MVP")
+app = FastAPI(
+    title="Streakify MVP",
+    description="A habit tracking application to help users build streaks and track their progress",
+    version="1.0.0"
+)
 
+# Include routers
+app.include_router(users_router)
+app.include_router(habits_router)
+app.include_router(logs_router)
 
-@app.post("/users", response_model=schemas.UserResponse)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    return crud.create_user(db=db, user=user)
-
-@app.post("/habits", response_model=schemas.HabitResponse)
-def create_habit(habit: schemas.HabitCreate, db: Session = Depends(get_db)):
-    return crud.create_habit(db=db, habit=habit)
-
-
-@app.get("/habits/{habit_id}/streak")
-def get_streak(habit_id: int, db: Session = Depends(get_db)):
-    return crud.get_streak_data(db=db, habit_id=habit_id)
 
 @app.get("/users/{user_id}/dashboard")
 def get_dashboard(user_id: int, db: Session = Depends(get_db)):
+    """Get user dashboard with all habits and progress"""
     habits = crud.get_user_habits(db, user_id=user_id)
     total_habits = len(habits)
-    
+
     if total_habits == 0:
         return {"totalHabits": 0, "activeHabits": 0, "completedToday": 0, "consistencyScore": 0}
 
@@ -38,7 +37,7 @@ def get_dashboard(user_id: int, db: Session = Depends(get_db)):
 
     for h in habits:
         streak = crud.get_streak_data(db, h.id)
-    
+
         logged_today = db.query(models.HabitLog).filter(
             models.HabitLog.habit_id == h.id,
             func.date(models.HabitLog.log_date) == today,
@@ -47,7 +46,7 @@ def get_dashboard(user_id: int, db: Session = Depends(get_db)):
 
         if logged_today:
             completed_today_count += 1
-            
+
         results.append({"habitName": h.name, **streak})
 
     score = int((completed_today_count / total_habits) * 100)
@@ -60,42 +59,9 @@ def get_dashboard(user_id: int, db: Session = Depends(get_db)):
         "consistencyScore": score
     }
 
-@app.put("/habits/{habit_id}/logs/{log_date}")
-def update_log(habit_id: int, log_date: date, completed: bool, db: Session = Depends(get_db)):
-    db_log = crud.update_habit_log(db, habit_id=habit_id, log_date=log_date, completed=completed)
-    if not db_log:
-        raise HTTPException(status_code=404, detail="Log not found")
-    return db_log
 
-@app.post("/habits/{habit_id}/logs", response_model=schemas.HabitLogResponse)
-def log_habit(habit_id: int, log: schemas.HabitLogCreate, db: Session = Depends(get_db)):
-    # This calls the logging logic we wrote in crud.py
-    return crud.create_habit_log(db=db, habit_id=habit_id, log_data=log)
-
-@app.get("/users/{id}", response_model=schemas.UserResponse)
-def read_user(id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-
-@app.delete("/users/{id}")
-def delete_user(id: int, db: Session = Depends(get_db)):
-    return crud.delete_user(db, user_id=id)
-
-@app.get("/users/{userId}/habits", response_model=list[schemas.HabitResponse])
-def read_habits(userId: int, db: Session = Depends(get_db)):
-    return crud.get_user_habits(db, user_id=userId)
-
-@app.delete("/habits/{id}")
-def delete_habit(id: int, db: Session = Depends(get_db)):
-    return crud.delete_habit(db, habit_id=id)
-
-
-@app.get("/habits/{habit_id}", response_model=schemas.HabitResponse)
-def read_habit(habit_id: int, db: Session = Depends(get_db)):
-    db_habit = crud.get_habit(db, habit_id=habit_id)
-    if db_habit is None:
-        raise HTTPException(status_code=404, detail="Habit not found")
-    return db_habit
+@app.get("/users/{user_id}/habits")
+def read_user_habits(user_id: int, db: Session = Depends(get_db)):
+    """Get all habits for a user"""
+    return crud.get_user_habits(db, user_id=user_id)
 
