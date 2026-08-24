@@ -1,6 +1,6 @@
 # Streakify
 
-Streakify is a calm, simple habit tracker built around one idea: small steps become meaningful progress when you keep showing up. It gives people a focused space to create routines, log daily wins, and see their current streaks and consistency at a glance, without turning self-improvement into a noisy competition.
+Streakify is a simple habit tracker built around one idea, small steps become meaningful progress when you keep showing up. It gives people a focused space to create routines, log daily wins, and see their current streaks and consistency at a glance, without turning self-improvement into a noisy competition.
 
 ## What It Does
 
@@ -13,10 +13,10 @@ Streakify is a calm, simple habit tracker built around one idea: small steps bec
 
 ## Tech Stack
 
-- **Frontend:** React, Vite, JavaScript, CSS
 - **Backend:** Python, FastAPI, SQLAlchemy
 - **Database:** PostgreSQL
 - **Deployment:** Vercel for the frontend and Render for the API and database
+- **Frontend:** React, Vite, JavaScript, CSS
 
 The frontend keeps API communication in a small service layer and uses environment variables for the backend URL. The FastAPI backend is organized into separate routes, schemas, models, and CRUD modules, keeping the application easy to extend while staying intentionally small.
 
