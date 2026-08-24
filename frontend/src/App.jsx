@@ -4,6 +4,7 @@ import EntryScreen from './components/EntryScreen'
 import Dashboard from './components/Dashboard'
 
 const USER_KEY = 'streakify_user_id'
+const USERS_KEY = 'streakify_users'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -44,9 +45,20 @@ export default function App() {
     setEntryLoading(true)
     setError('')
     try {
-      const created = await api.createUser(data)
-      localStorage.setItem(USER_KEY, created.id)
-      await loadUser(created.id)
+      const email = data.email.toLowerCase()
+      const savedUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '{}')
+      const savedUserId = savedUsers[email]
+
+      if (savedUserId) {
+        localStorage.setItem(USER_KEY, savedUserId)
+        await loadUser(savedUserId)
+      } else {
+        const created = await api.createUser({ ...data, email })
+        savedUsers[email] = created.id
+        localStorage.setItem(USERS_KEY, JSON.stringify(savedUsers))
+        localStorage.setItem(USER_KEY, created.id)
+        await loadUser(created.id)
+      }
     } catch (entryError) {
       setError(entryError.message)
     } finally {
