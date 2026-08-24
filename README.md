@@ -1,5 +1,6 @@
 <img width="1435" height="686" alt="Screenshot 2026-08-24 at 10 46 33 PM" src="https://github.com/user-attachments/assets/0cd06fd4-0ab9-4b9e-8ee4-ab1912cd0d58" />
-# Streakify
+
+## Streakify
 
 Streakify is a simple habit tracker built around one idea, small steps become meaningful progress when you keep showing up. It gives people a focused space to create routines, log daily wins, and see their current streaks and consistency at a glance, without turning self-improvement into a noisy competition.
 
